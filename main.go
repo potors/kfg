@@ -43,7 +43,7 @@ func main() {
 
 	if debug {
 		for _, token := range tokens {
-			Info.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
+			Debug.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
 		}
 	}
 
@@ -52,7 +52,7 @@ func main() {
 
 	if debug {
 		for _, token := range tokens {
-			Info.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
+			Debug.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
 		}
 	}
 

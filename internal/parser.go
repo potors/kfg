@@ -31,16 +31,20 @@ func Parse(tokens []Token) (Ast, error) {
 	ast := Ast{Assignments: map[string]Node{}}
 	var EOF bool
 
-	len := len(tokens)
+	_len := len(tokens)
 
-	for i := 0; i < len; i++ {
+	var scopes []string
+	for i := 0; i < _len; i++ {
 		key := tokens[i]
 
 		switch key.Type {
 		case NewLine:
 			continue
+		case Dot:
+			// TODO: fix variable name 'a.b = null' -> 'b = null' should return err
+			return ast, fmt.Errorf("%vs are only allowed inside dictionaries", key.Type)
 		case Symbol:
-			EOF = i+1 >= len
+			EOF = i+1 >= _len
 			if EOF {
 				return ast, fmt.Errorf("missing declaration after symbol '%v' at %v", key, key.Position)
 			}
@@ -49,7 +53,7 @@ func Parse(tokens []Token) (Ast, error) {
 			next := tokens[i]
 
 			if next.Type == Equals {
-				EOF = i+1 >= len
+				EOF = i+1 >= _len
 				if EOF {
 					return ast, fmt.Errorf("missing value after key '%v' at %v", key, key.Position)
 				}
@@ -77,10 +81,56 @@ func Parse(tokens []Token) (Ast, error) {
 					return ast, err
 				}
 
-				ast.Assignments[key.Symbol] = node
+				_len_scopes := len(scopes)
+				if _len_scopes > 0 {
+					scopes = append(scopes, key.Symbol)
+
+					root := Node{
+						Type:  Dict,
+						Value: map[string]Node{},
+					}
+
+					child := root
+					for i, scope := range scopes {
+						fmt.Println(i, scope, _len_scopes)
+
+						if i == 0 {
+							continue
+						}
+
+						// _len_scopes doesn't need -1 because the last scope was added after
+						if i == _len_scopes {
+							child.Value.(map[string]Node)[scope] = node
+						} else {
+							child.Value.(map[string]Node)[scope] = Node{
+								Type:  Dict,
+								Value: map[string]Node{},
+							}
+						}
+					}
+
+					ast.Assignments[scopes[0]] = root
+				} else {
+					ast.Assignments[key.Symbol] = node
+				}
+			} else if next.Type == Colon {
+				EOF = i+1 >= _len
+				if EOF {
+					return ast, fmt.Errorf("missing symbol ':' after '%v' at %v", key, key.Position)
+				}
+
+				i++
+				next := tokens[i]
+
+				if next.Type == Colon {
+					scopes = append(scopes, key.Symbol)
+					continue
+				}
+
+				return ast, fmt.Errorf("invalid symbol '%v' at %v, should be ':'", key.Symbol, key.Position)
 			}
 		default:
-			return ast, fmt.Errorf("unreachable default tokentype %v", key.Type)
+			return ast, fmt.Errorf("unreachable default tokentype '%v' at %v", key.Type, key.Position)
 		}
 	}
 
@@ -294,6 +344,8 @@ func parseDict(tokens []Token, at int) (Node, int, error) {
 						node, at, err = parseString(tokens, at+1)
 					case Symbol:
 						node, at, err = parseSymbol(tokens, at)
+					case Colon:
+						return Node{}, at, fmt.Errorf("nested declarations are not allowed inside dictionaries")
 					}
 				} else {
 					return Node{}, at, fmt.Errorf("invalid token %v at %v expected Colon", token.Type, token.Position)

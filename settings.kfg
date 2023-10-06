@@ -1,6 +1,7 @@
-/* big comment block */
-// comment block
+// comment
+/* comment block */
 
+/*
 boolean_variable = true
 int_variable = 123
 float_variable = 0.4
@@ -25,15 +26,8 @@ dict_variable = {
         .three: 'nothing'
     }
 }
-
-/*
-outer = {
-    .inner: [true, false, true]
-    .inner: 0
-}
+*/
 
 outer::inner = {
-    .nested: 1
+    .nested::asdasd: 1
 }
-*/
-/*/*
