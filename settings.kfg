@@ -1,0 +1,38 @@
+/* big comment block */
+// comment block
+
+boolean_variable = true
+int_variable = 123
+float_variable = 0.4
+string_variable = 'something'
+
+arr_variable = [
+    true123,
+    'something',
+    -80.084,
+    [
+        'dont know'
+    ]
+]
+
+dict_variable = {
+    .one: true
+    .two: 123
+    .three: 'something'
+    .nested_dict: {
+        .one: [false,true,false,false]
+        .two: 456
+        .three: 'nothing'
+    }
+}
+
+/*
+outer = {
+    .inner: [true, false, true]
+    .inner: 0
+}
+
+outer::inner = {
+    .nested: 1
+}
+*/

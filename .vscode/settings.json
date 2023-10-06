@@ -1,0 +1,8 @@
+{
+    "material-icon-theme.folders.associations": {
+        "internal": "src"
+    },
+    "files.associations": {
+        "*.kfg": "plaintext"
+    }
+}
