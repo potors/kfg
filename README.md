@@ -3,6 +3,7 @@
 ## Variables
 
 You can set variables by writing `<key> = <value>`
+Or using the [shortand for nested variables](#scopes) `key::nested = <value>`
 
 Examples:
 
@@ -11,7 +12,7 @@ Examples:
 - `port = 8080`
 - `api_key = null`
 
-### Types
+## Types
 
 A variable can have one of the following types:
 
@@ -22,13 +23,13 @@ A variable can have one of the following types:
 - [Array](#arrays)
 - [Dict](#dictionaries)
 
-## Strings
+### Strings
 
 Strings are denoted by single colons, and can't have any, unless escaped, new lines
 
 Example: `'content\n'`
 
-## Integers
+### Integers
 
 Integers works like everywhere
 
@@ -38,7 +39,7 @@ Examples:
 - `var = 0xFF`
 - `var = 0o750`
 
-## Float
+### Float
 
 The only thing that distinguishes integers from floats are their ending  
 Floats can't convert non decimal values to other bases
@@ -47,13 +48,13 @@ Examples:
 
 - `var = 123.321`
 
-## Null
+### Null
 
 Null will always represent the word `null`, regardless of the implementation, being it a keyword, or being it an enum
 
 Example: `var = null`
 
-## Arrays
+### Arrays
 
 To define an array use `[...]`
 
@@ -68,7 +69,7 @@ Examples:
   ]
   ```
 
-## Dictionaries
+### Dictionaries
 
 To define an dictionary use `{.key: value}`
 
@@ -82,3 +83,26 @@ Example:
       .next_in: 14.0
   }
   ```
+
+## Scopes
+
+Scopes transforms this:
+
+```
+some = {
+    .big: {
+        .and: {
+            .nested: {
+                .variable: null
+            }
+        }
+    }
+}
+```
+
+Into this:
+```
+some::big::and::nested::variable = null
+```
+
+There's no scopes inside dictionaries
