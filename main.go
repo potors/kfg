@@ -46,4 +46,13 @@ func main() {
 			Info.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
 		}
 	}
+
+	Info.Log("Lexing", file)
+	tokens = internal.Lex(tokens)
+
+	if debug {
+		for _, token := range tokens {
+			Info.Printf("\033[36m%v\033[m \033[33m%#v\033[m at %v", token.Type, token.Symbol, token.Position)
+		}
+	}
 }

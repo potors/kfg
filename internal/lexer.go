@@ -89,6 +89,56 @@ func Tokenize(buffer []byte) []Token {
 	return tokens
 }
 
+func Lex(tokens []Token) []Token {
+	var array []Token
+
+	isComment, isCommentBlock, isString := false, false, false
+
+	len := len(tokens)
+
+	for i, token := range tokens {
+		var prev, next Token
+
+		if i > 1 {
+			prev = tokens[i-1]
+		}
+
+		if i < len-1 {
+			next = tokens[i+1]
+		}
+
+		// Remove comments (//, /*)
+		if isComment {
+			if token.Type == NewLine {
+				isComment = false
+			}
+
+			continue
+		} else if isCommentBlock {
+			if token.Type == Slash && prev.Type == Asterisk && tokens[i-2].Type != Slash {
+				isCommentBlock = false
+			}
+
+			continue
+		} else if token.Type == Slash {
+			if next.Type == Slash {
+				isComment = true
+			} else if next.Type == Asterisk {
+				isCommentBlock = true
+			}
+
+			continue
+		}
+
+		// Remove spaces (except inside strings)
+		if !isString && token.Type != Space {
+			array = append(array, token)
+		}
+	}
+
+	return array
+}
+
 func TokenTypeFrom(char byte) TokenType {
 	switch char {
 	case '.':
