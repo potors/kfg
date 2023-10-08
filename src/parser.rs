@@ -66,7 +66,7 @@ pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
                                         if scopes.peek().is_some() {
                                             dict.insert(scope.clone(), Node::Dict(HashMap::new()));
 
-                                            child = (&mut *(dict as *mut HashMap<String, Node>))
+                                            child = (*(dict as *mut HashMap<String, Node>))
                                                 .get_mut(scope)
                                                 .unwrap();
                                         } else {
@@ -259,10 +259,11 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
                         match self.next() {
                             Some(token) if matches!(token.kind, TokenKind::Colon) => {
                                 match self.peek() {
-                                    Some(&token) => if let TokenKind::Colon = token.kind {
+                                    Some(&token) if matches!(token.kind, TokenKind::Colon) => {
                                         return Err(ParserError::ScopeInsideDict(token.clone()));
                                     }
                                     None => return Err(ParserError::UnexpectedEOF(token.clone())),
+                                    _ => {}
                                 }
 
                                 let node = Node::try_from(&mut *self)?;

@@ -25,7 +25,7 @@ impl std::fmt::Display for Ast {
             s.push_str(&format!("{key}: {value}"));
         }
 
-        write!(f, "Ast {{\n  {}\r\n}}", INDENT(s))
+        write!(f, "{{\n  {}\r\n}}", INDENT(s))
     }
 }
 
