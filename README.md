@@ -3,7 +3,7 @@
 ## Variables
 
 You can set variables by writing `<key> = <value>`
-Or using the [shortand for nested variables](#scopes) `key::nested = <value>`
+Or using the [shorthand for nested variables](#scopes) `key::nested = <value>`
 
 Examples:
 
