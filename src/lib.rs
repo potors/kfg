@@ -17,7 +17,7 @@ impl Kfg {
         Self::parse(&content)
     }
 
-    pub fn parse(buffer: &Vec<u8>) -> Result<Ast, parser::ParserError> {
+    pub fn parse(buffer: &[u8]) -> Result<Ast, parser::ParserError> {
         let tokens = lexer::lex(buffer);
 
         parser::parse(&tokens)

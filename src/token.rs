@@ -4,6 +4,20 @@ pub struct Token {
     pub position: TokenPosition,
 }
 
+#[cfg(test)]
+impl Token {
+    pub fn new(kind: TokenKind, position: (isize, isize, isize)) -> Self {
+        Self {
+            kind,
+            position: TokenPosition {
+                line: position.0,
+                character: position.1,
+                length: position.2,
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenKind {
     Symbol(String),

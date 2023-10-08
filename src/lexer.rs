@@ -122,8 +122,6 @@ pub fn lex(buffer: &[u8]) -> Vec<Token> {
 
 #[cfg(test)]
 mod tests {
-    use crate::TokenPosition;
-
     use super::*;
 
     #[test]
@@ -132,38 +130,54 @@ mod tests {
 
         let buffer: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789,.\n:/' *=[]{}";
 
-        let expect: Vec<Token> = {
-            let kinds: [TokenKind; 14] = [
-                Symbol("abcdefghijklmnopqrstuvwxyz0123456789".into()),
-                Comma, Dot, Colon, Slash, Quote, Asterisk, Equals,
-                OpenBracket, CloseBracket, OpenCurly, CloseCurly,
-                Space, NewLine
-            ];
-
-            let mut positions: Vec<TokenPosition> = vec![
-                TokenPosition { line: 1, character: 0, length: 36 },
-                TokenPosition { line: 1, character: 36, length: 1 },
-                TokenPosition { line: 1, character: 37, length: 1 },
-                TokenPosition { line: 2, character: 0, length: 1 },
-                TokenPosition { line: 2, character: 1, length: 1 },
-                TokenPosition { line: 2, character: 2, length: 1 },
-                TokenPosition { line: 2, character: 3, length: 1 },
-                TokenPosition { line: 2, character: 4, length: 1 },
-                TokenPosition { line: 2, character: 5, length: 1 },
-                TokenPosition { line: 2, character: 6, length: 1 },
-                TokenPosition { line: 2, character: 7, length: 1 },
-                TokenPosition { line: 2, character: 8, length: 1 },
-                TokenPosition { line: 2, character: 9, length: 1 },
-                TokenPosition { line: 2, character: 10, length: 1 },
-            ].into_iter().rev().collect();
-
-            kinds.into_iter().map(|kind| {
-                Token { kind, position: positions.pop().unwrap() }
-            }).collect()
-        };
+        let expect: [Token; 14] = [
+                Token::new(Symbol("abcdefghijklmnopqrstuvwxyz0123456789".into()), (1, 0, 36)),
+                Token::new(Comma, (1, 36, 1)),
+                Token::new(Dot, (1, 37, 1)),
+                Token::new(NewLine, (2, 0, 1)),
+                Token::new(Colon, (2, 1, 1)),
+                Token::new(Slash, (2, 2, 1)),
+                Token::new(Quote, (2, 3, 1)),
+                Token::new(Space, (2, 4, 1)),
+                Token::new(Asterisk, (2, 5, 1)),
+                Token::new(Equals, (2, 6, 1)),
+                Token::new(OpenBracket, (2, 7, 1)),
+                Token::new(CloseBracket, (2, 8, 1)),
+                Token::new(OpenCurly, (2, 9, 1)),
+                Token::new(CloseCurly, (2, 10, 1)),
+        ];
 
         let tokens = tokenize(buffer);
 
         assert_eq!(tokens, expect);
+    }
+
+    #[test]
+    fn test_filter() {
+        use TokenKind::*;
+        
+        let tokens: [Token; 15] = [
+            Token::new(Slash, (1, 0, 1)),
+            Token::new(Slash, (1, 1, 1)),
+            Token::new(Symbol("comment".into()), (1, 2, 7)),
+            Token::new(NewLine, (2, 0, 1)),
+            Token::new(Symbol("var".into()), (2, 1, 3)),
+            Token::new(Equals, (2, 4, 1)),
+            Token::new(Symbol("null".into()), (2, 5, 4)),
+            Token::new(NewLine, (3, 0, 1)),
+            Token::new(Slash, (3, 1, 1)),
+            Token::new(Asterisk, (3, 2, 1)),
+            Token::new(Symbol("comment".into()), (3, 3, 7)),
+            Token::new(Space, (3, 10, 1)),
+            Token::new(Symbol("block".into()), (3, 11, 5)),
+            Token::new(Asterisk, (3, 16, 1)),
+            Token::new(Slash, (3, 17, 1)),
+        ];
+        
+        let expect: &[Token] = &tokens[4..8];
+        
+        let lexed = filter(&tokens);
+        
+        assert_eq!(lexed, expect);
     }
 }
