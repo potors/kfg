@@ -26,6 +26,8 @@ pub fn tokenize(buffer: &[u8]) -> Vec<Token> {
             loop {
                 s.push(buffer[i].into());
 
+                character += 1;
+
                 if i + 1 < buffer.len() {
                     match TokenKind::from(buffer[i + 1] as char) {
                         TokenKind::Symbol(_) => {}
@@ -33,7 +35,6 @@ pub fn tokenize(buffer: &[u8]) -> Vec<Token> {
                     }
                 }
 
-                character += 1;
                 i += 1;
 
                 // Reached EOF
