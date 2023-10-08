@@ -83,6 +83,6 @@ pub struct TokenPosition {
 
 impl ToString for TokenPosition {
     fn to_string(&self) -> String {
-        format!("{}:{}-{}", self.line, self.character, self.character + self.length)
+        format!("{}:{}-{}", self.line, self.character, self.length)
     }
 }

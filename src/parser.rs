@@ -45,7 +45,7 @@ pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
                 let next = iter.next().unwrap();
 
                 match next.kind {
-                    Equals => {
+                    Equals => unsafe {
                         if iter.peek().is_none() {
                             return Err(MissingValueAfterDeclaration(key.clone()));
                         }
@@ -56,37 +56,35 @@ pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
                             keys.push(symbol.clone());
 
                             let mut root = Node::Dict(HashMap::new());
-                            let mut child = &mut root;
 
                             {
+                                let mut child = &mut root;
                                 let mut scopes = keys.iter().skip(1).peekable();
 
                                 while let Some(scope) = scopes.next() {
-                                    match scopes.peek() {
-                                        Some(_) => {
-                                            if let Node::Dict(ref mut dict) = child {
-                                                dict.insert(scope.clone(), Node::Dict(HashMap::new()));
-                                                child = dict.get_mut(scope).unwrap();
-                                            }
-                                        }
-                                        None => {
-                                            if let Node::Dict(ref mut dict) = child {
-                                                dict.insert(scope.clone(), node.clone());
-                                            }
+                                    if let Node::Dict(ref mut dict) = child {
+                                        if scopes.peek().is_some() {
+                                            dict.insert(scope.clone(), Node::Dict(HashMap::new()));
+
+                                            child = (&mut *(dict as *mut HashMap<String, Node>))
+                                                .get_mut(scope)
+                                                .unwrap();
+                                        } else {
+                                            dict.insert(scope.clone(), node.clone());
                                         }
                                     }
                                 }
                             }
 
-                            let mut dict = &mut ast.0 as *mut HashMap<String, Node>;
+                            let mut dict = &mut ast.0;
                             for key in keys {
-                                match unsafe { &mut *dict }.get_mut(key) {
+                                match dict.get_mut(key) {
                                     Some(Node::Dict(inner)) => {
-                                        dict = inner as *mut HashMap<String, Node>;
+                                        dict = &mut *(inner as *mut _);
                                         continue;
                                     }
                                     _ => {
-                                        unsafe { &mut *dict }.insert(key.clone(), root);
+                                        dict.insert(key.clone(), root);
                                         break;
                                     }
                                 }
@@ -96,21 +94,17 @@ pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
                         } else {
                             ast.0.insert(symbol.clone(), node);
                         }
-                    }
-                    Colon => {
-                        match iter.next() {
-                            Some(next) => match next.kind {
-                                Colon => {
-                                    match scopes {
-                                        Some(ref mut scopes) => scopes.push(symbol.clone()),
-                                        None => scopes = Some(vec![symbol.clone()]),
-                                    }
-                                }
-                                _ => return Err(MismatchedTokenType(TokenKind::Colon, key.clone())),
-                            }
-                            None => return Err(UnexpectedEOF(next.clone())),
-                        }
-                    }
+                    },
+                    Colon => match iter.next() {
+                        Some(next) => match next.kind {
+                            Colon => match scopes {
+                                Some(ref mut scopes) => scopes.push(symbol.clone()),
+                                None => scopes = Some(vec![symbol.clone()]),
+                            },
+                            _ => return Err(MismatchedTokenType(TokenKind::Colon, key.clone())),
+                        },
+                        None => return Err(UnexpectedEOF(next.clone())),
+                    },
                     _ => return Err(UnreachableToken(key.clone())),
                 }
             }
@@ -156,7 +150,8 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
             } else {
                 None
             }
-        }.unwrap_or(Node::try_from(token)?);
+        }
+        .unwrap_or(Node::try_from(token)?);
 
         log::debug!("\x1b[33m*\x1b[m {node:?}");
 

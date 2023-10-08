@@ -1,8 +1,8 @@
-use std::{collections::HashMap, iter::Peekable, slice::Iter};
 use crate::{
     parser::{ParseTokens, ParserError},
     Token, TokenKind,
 };
+use std::{collections::HashMap, iter::Peekable, slice::Iter};
 
 const INDENT: fn(String) -> String = |s| s.replace('\n', "\n  ");
 
@@ -42,7 +42,7 @@ pub enum Node {
 
 impl std::fmt::Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
+        let node = match self {
             Node::String(value) => format!("\x1b[32m\"{value}\"\x1b[m"),
             Node::Integer(value) => format!("\x1b[33m{value}\x1b[m"),
             Node::Float(value) => format!("\x1b[33m{value}\x1b[m"),
@@ -53,16 +53,15 @@ impl std::fmt::Display for Node {
                 } else {
                     let initial = INDENT(value[0].to_string());
 
-                    let arr = value.iter()
+                    let arr = value
+                        .iter()
                         .skip(1)
                         .map(|node| INDENT(format!("{node}")))
-                        .fold(initial, |acc: String, e| {
-                            format!("{acc},\n  {e}")
-                        });
+                        .fold(initial, |acc, e| format!("{acc},\n  {e}"));
 
                     format!("[\n  {arr}\n]")
                 }
-            },
+            }
             Node::Dict(value) => {
                 let value = value.iter().collect::<Vec<_>>();
 
@@ -71,18 +70,19 @@ impl std::fmt::Display for Node {
                 } else {
                     let initial = INDENT(format!("{}: {}", value[0].0, value[0].1));
 
-                    let dict = value.iter()
+                    let dict = value
+                        .iter()
                         .skip(1)
                         .map(|(key, value)| INDENT(format!("{key}: {value}")))
-                        .fold(initial, |acc: String, e| {
-                            format!("{acc},\n  {e}")
-                        });
+                        .fold(initial, |acc, e| format!("{acc},\n  {e}"));
 
                     format!("{{\n  {dict}\n}}")
                 }
-            },
+            }
             Node::Null => "\x1b[31mnull\x1b[m".into(),
-        })
+        };
+
+        write!(f, "{node}")
     }
 }
 

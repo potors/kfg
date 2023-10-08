@@ -1,6 +1,5 @@
-use log::{debug, info, error, log_enabled, Level};
-use std::{env, process, fs, io};
 use kfg::{lexer, parser};
+use std::{env, fs, io, process};
 
 fn main() -> io::Result<()> {
     env_logger::init();
@@ -8,37 +7,40 @@ fn main() -> io::Result<()> {
     let args = env::args().collect::<Vec<_>>();
 
     if args.len() < 2 {
-        error!("Syntax: <file>");
+        log::error!("Syntax: <file>");
         process::exit(1);
     }
 
     let file = &args[1];
 
-    info!("Reading '{file}'");
+    log::info!("Reading '{file}'");
     let content = fs::read(file)?;
 
-    info!("Tokenizing '{file}'");
+    log::info!("Tokenizing '{file}'");
     let tokens = lexer::tokenize(&content);
 
-    if log_enabled!(Level::Debug) {
+    if log::log_enabled!(log::Level::Debug) {
         for token in &tokens {
-            debug!("{:?}", token.kind);
+            log::debug!("{:?}", token.kind);
         }
     }
 
-    info!("Lexing '{file}'");
+    log::info!("Lexing '{file}'");
     let tokens = lexer::filter(&tokens);
 
-    if log_enabled!(Level::Debug) {
+    if log::log_enabled!(log::Level::Debug) {
         for token in &tokens {
-            debug!("{:?}", token.kind);
+            log::debug!("{:?}", token.kind);
         }
     }
 
-    info!("Parsing '{file}'");
-    let ast = parser::parse(&tokens).unwrap();
+    log::info!("Parsing '{file}'");
+    let ast = parser::parse(&tokens);
 
-    info!("\n{ast}");
+    match ast {
+        Ok(ast) => log::info!("\n{ast}"),
+        Err(err) => log::debug!("{err:?}"),
+    }
 
     Ok(())
 }
