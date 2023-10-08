@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'kfg'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=kfg",
+                    "--package=kfg",
+                ],
+                "filter": {
+                    "name": "kfg",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "settings.kfg"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

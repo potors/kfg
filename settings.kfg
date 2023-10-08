@@ -1,0 +1,39 @@
+// comment
+/* comment block */
+
+boolean_variable = true
+int_variable = 123
+float_variable = 0.4
+string_variable = 'something'
+
+arr_variable = [
+    true,
+    'something',
+    -80.084,
+    [
+        'dont know'
+    ]
+]
+
+dict_variable = {
+    .one: true
+    .two: 123
+    .three: 'something with spaces'
+    .nested_dict: {
+        .one: [false,true,false,false]
+        .two: 456
+        .three: 'nothing'
+    }
+}
+
+empty_array = []
+empty_dict = {}
+
+some::really::deep::nested::value::shortcut = {
+    .exists: null
+    .cares: false
+}
+
+some::other = {
+    .works: true
+}
