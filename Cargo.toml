@@ -3,6 +3,7 @@ name = "kfg"
 version = "0.1.0"
 edition = "2021"
 authors = ["felpofo <felpofo@proton.me>"]
+license = "MIT"
 
 [dependencies]
 env_logger = "0.10.0"
