@@ -48,7 +48,7 @@ impl std::fmt::Display for Node {
             Node::Float(value) => format!("\x1b[33m{value}\x1b[m"),
             Node::Bool(value) => format!("\x1b[34m{value}\x1b[m"),
             Node::Array(value) => {
-                if value.len() == 0 {
+                if value.is_empty() {
                     "[]".to_string()
                 } else {
                     let initial = INDENT(value[0].to_string());
@@ -66,7 +66,7 @@ impl std::fmt::Display for Node {
             Node::Dict(value) => {
                 let value = value.iter().collect::<Vec<_>>();
 
-                if value.len() == 0 {
+                if value.is_empty() {
                     "{}".to_string()
                 } else {
                     let initial = INDENT(format!("{}: {}", value[0].0, value[0].1));
@@ -139,7 +139,7 @@ impl TryFrom<&mut Peekable<Iter<'_, Token>>> for Node {
             Quote => iter.parse_string(),
             OpenBracket => iter.parse_array(),
             OpenCurly => iter.parse_dict(),
-            _ => return Err(ParserError::UnreachableToken((*token).clone())),
+            _ => Err(ParserError::UnreachableToken((*token).clone())),
         }
     }
 }

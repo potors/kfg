@@ -24,7 +24,7 @@ impl std::fmt::Display for ParserError {
     }
 }
 
-pub fn parse(tokens: &Vec<Token>) -> Result<Ast, ParserError> {
+pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
     let mut ast = Ast::default();
 
     let mut scopes: Option<Vec<String>> = None;
@@ -79,19 +79,14 @@ pub fn parse(tokens: &Vec<Token>) -> Result<Ast, ParserError> {
                             }
 
                             let mut dict = &mut ast.0 as *mut HashMap<String, Node>;
-                            for i in 0..keys.len() {
-                                match unsafe { &mut *dict }.get_mut(&keys[i]) {
-                                    Some(existent) => {
-                                        if let Node::Dict(inner) = existent {
-                                            dict = inner as *mut HashMap<String, Node>;
-                                            continue;
-                                        } else {
-                                            unsafe { &mut *dict }.insert(keys[i].clone(), root);
-                                            break;
-                                        }
+                            for key in keys {
+                                match unsafe { &mut *dict }.get_mut(key) {
+                                    Some(Node::Dict(inner)) => {
+                                        dict = inner as *mut HashMap<String, Node>;
+                                        continue;
                                     }
-                                    None => {
-                                        unsafe { &mut *dict }.insert(keys[i].clone(), root);
+                                    _ => {
+                                        unsafe { &mut *dict }.insert(key.clone(), root);
                                         break;
                                     }
                                 }
@@ -107,12 +102,8 @@ pub fn parse(tokens: &Vec<Token>) -> Result<Ast, ParserError> {
                             Some(next) => match next.kind {
                                 Colon => {
                                     match scopes {
-                                        Some(ref mut scopes) => {
-                                            scopes.push(symbol.clone())
-                                        }
-                                        None => {
-                                            scopes = Some(vec![symbol.clone()]);
-                                        }
+                                        Some(ref mut scopes) => scopes.push(symbol.clone()),
+                                        None => scopes = Some(vec![symbol.clone()]),
                                     }
                                 }
                                 _ => return Err(MismatchedTokenType(TokenKind::Colon, key.clone())),

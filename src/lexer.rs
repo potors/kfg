@@ -61,7 +61,7 @@ enum Ignore {
     None,
 }
 
-pub fn filter(tokens: &Vec<Token>) -> Vec<Token> {
+pub fn filter(tokens: &[Token]) -> Vec<Token> {
     use TokenKind::{Asterisk, NewLine, Quote, Slash, Space};
 
     let mut array: Vec<Token> = vec![];
