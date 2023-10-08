@@ -6,4 +6,7 @@ before pull run and fix:
 
 should do:
   - [ ] custom log impl
+  - [ ] escaped characters inside strings
   - [ ] tests
+    - [x] tokenizer
+    - [x] filter
