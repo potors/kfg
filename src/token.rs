@@ -1,10 +1,10 @@
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Token {
     pub kind: TokenKind,
     pub position: TokenPosition,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenKind {
     Symbol(String),
     Dot,
@@ -74,7 +74,7 @@ impl Default for TokenKind {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct TokenPosition {
     pub line: isize,
     pub character: isize,

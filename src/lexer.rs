@@ -1,6 +1,6 @@
 use crate::{Token, TokenKind};
 
-pub fn tokenize(buffer: &Vec<u8>) -> Vec<Token> {
+pub fn tokenize(buffer: &[u8]) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
     let [mut line, mut character] = [1, 0];
 
@@ -115,6 +115,54 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
     array
 }
 
-pub fn lex(buffer: &Vec<u8>) -> Vec<Token> {
+pub fn lex(buffer: &[u8]) -> Vec<Token> {
     filter(&tokenize(buffer))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::TokenPosition;
+
+    use super::*;
+
+    #[test]
+    fn test_tokenize() {
+        use TokenKind::*;
+
+        let buffer: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789,.\n:/' *=[]{}";
+
+        let expect: Vec<Token> = {
+            let kinds: [TokenKind; 14] = [
+                Symbol("abcdefghijklmnopqrstuvwxyz0123456789".into()),
+                Comma, Dot, Colon, Slash, Quote, Asterisk, Equals,
+                OpenBracket, CloseBracket, OpenCurly, CloseCurly,
+                Space, NewLine
+            ];
+
+            let mut positions: Vec<TokenPosition> = vec![
+                TokenPosition { line: 1, character: 0, length: 36 },
+                TokenPosition { line: 1, character: 36, length: 1 },
+                TokenPosition { line: 1, character: 37, length: 1 },
+                TokenPosition { line: 2, character: 0, length: 1 },
+                TokenPosition { line: 2, character: 1, length: 1 },
+                TokenPosition { line: 2, character: 2, length: 1 },
+                TokenPosition { line: 2, character: 3, length: 1 },
+                TokenPosition { line: 2, character: 4, length: 1 },
+                TokenPosition { line: 2, character: 5, length: 1 },
+                TokenPosition { line: 2, character: 6, length: 1 },
+                TokenPosition { line: 2, character: 7, length: 1 },
+                TokenPosition { line: 2, character: 8, length: 1 },
+                TokenPosition { line: 2, character: 9, length: 1 },
+                TokenPosition { line: 2, character: 10, length: 1 },
+            ].into_iter().rev().collect();
+
+            kinds.into_iter().map(|kind| {
+                Token { kind, position: positions.pop().unwrap() }
+            }).collect()
+        };
+
+        let tokens = tokenize(buffer);
+
+        assert_eq!(tokens, expect);
+    }
 }
