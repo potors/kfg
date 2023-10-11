@@ -94,7 +94,7 @@ impl Default for TokenKind {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenPosition {
     pub line: isize,
     pub character: isize,
@@ -131,6 +131,16 @@ impl std::fmt::Display for TokenPosition {
 //         }
 //     }
 // }
+
+impl Default for TokenPosition {
+    fn default() -> Self {
+        Self {
+            line: 1,
+            character: 0,
+            length: 0,
+        }
+    }
+}
 
 impl std::ops::AddAssign for TokenPosition {
     fn add_assign(&mut self, rhs: Self) {

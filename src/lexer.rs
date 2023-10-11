@@ -2,56 +2,41 @@ use crate::{Token, TokenKind};
 
 pub fn tokenize(buffer: &[u8]) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
-    let [mut line, mut character] = [1, 0];
 
-    let mut token = Token::default();
+    let mut iter = buffer.into_iter().map(|&byte| byte as char).peekable();
 
-    let mut i = 0;
-    while i < buffer.len() {
-        let char = buffer[i] as char;
-
-        if char == '\n' {
-            line += 1;
-            character = 0;
-        }
-
-        token.position.line = line;
-        token.position.character = character;
+    while let Some(char) = iter.next() {
+        let mut token = Token::default();
 
         token.kind = char.into();
+        token.position.length = 1;
 
-        if let TokenKind::Symbol(ref mut s) = token.kind {
-            s.clear();
+        match tokens.last() {
+            Some(last) if matches!(last.kind, TokenKind::NewLine) => {
+                token.position.line += 1;
+            }
+            Some(last) => {
+                token.position.line = last.position.line;
+                token.position.character = last.position.character + last.position.length;
+            }
+            None => {}
+        }
 
-            loop {
-                s.push(buffer[i].into());
+        if let TokenKind::Symbol(ref mut symbol) = token.kind {
+            while let Some(char) = iter.next() {
+                symbol.push(char);
+                token.position.length += 1;
 
-                character += 1;
-
-                if i + 1 < buffer.len() {
-                    match TokenKind::from(buffer[i + 1] as char) {
-                        TokenKind::Symbol(_) => {}
-                        _ => break,
-                    }
-                }
-
-                i += 1;
-
-                // Reached EOF
-                if i == buffer.len() {
+                if !matches!(iter.peek().map(|&char| TokenKind::from(char)), Some(TokenKind::Symbol(_))) {
                     break;
                 }
             }
-        } else {
-            character += 1;
         }
 
-        token.position.length = character - token.position.character;
-        tokens.push(token.clone());
-
-        i += 1;
+        tokens.push(token);
     }
 
+    trace!("\x1b[1;33m*\x1b[37m Tokens: \x1b[36m{}\x1b[m", tokens.len());
     tokens
 }
 
@@ -154,17 +139,17 @@ mod tests {
             Token::new(Symbol("abcdefghijklmnopqrstuvwxyz0123456789".into()), (1, 0, 36)),
             Token::new(Comma, (1, 36, 1)),
             Token::new(Dot, (1, 37, 1)),
-            Token::new(NewLine, (2, 0, 1)),
-            Token::new(Colon, (2, 1, 1)),
-            Token::new(Slash, (2, 2, 1)),
-            Token::new(Quote, (2, 3, 1)),
-            Token::new(Space, (2, 4, 1)),
-            Token::new(Asterisk, (2, 5, 1)),
-            Token::new(Equals, (2, 6, 1)),
-            Token::new(OpenBracket, (2, 7, 1)),
-            Token::new(CloseBracket, (2, 8, 1)),
-            Token::new(OpenCurly, (2, 9, 1)),
-            Token::new(CloseCurly, (2, 10, 1)),
+            Token::new(NewLine, (1, 38, 1)),
+            Token::new(Colon, (2, 0, 1)),
+            Token::new(Slash, (2, 1, 1)),
+            Token::new(Quote, (2, 2, 1)),
+            Token::new(Space, (2, 3, 1)),
+            Token::new(Asterisk, (2, 4, 1)),
+            Token::new(Equals, (2, 5, 1)),
+            Token::new(OpenBracket, (2, 6, 1)),
+            Token::new(CloseBracket, (2, 7, 1)),
+            Token::new(OpenCurly, (2, 8, 1)),
+            Token::new(CloseCurly, (2, 9, 1)),
         ];
 
         let tokens = tokenize(buffer);
