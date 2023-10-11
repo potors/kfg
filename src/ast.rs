@@ -9,6 +9,23 @@ const INDENT: fn(String) -> String = |s| s.replace('\n', "\n  ");
 #[derive(Debug, Default, Clone)]
 pub struct Ast(pub HashMap<String, Node>);
 
+impl Ast {
+    pub fn assignments(&self) -> usize {
+        get_len(&self.0)
+    }
+
+    pub fn inline(&self) -> String {
+        let string = self.0.iter()
+            .fold(String::new(), |acc, (key, value)| {
+                format!("{acc}, {key}: {}", value.inline())
+            })
+            .trim_start_matches(", ")
+            .to_string();
+
+        format!("{{{string}}}")
+    }
+}
+
 impl std::fmt::Display for Ast {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = String::new();
@@ -183,9 +200,19 @@ impl TryFrom<&mut Peekable<Iter<'_, Token>>> for Node {
         };
 
         if let Ok(node) = &node {
-            debug!("{}", node.inline());
+            trace!("{}", node.inline());
         }
 
         node
     }
+}
+
+fn get_len(dict: &HashMap<String, Node>) -> usize {
+    dict.iter().filter_map(|(_, node)| {
+        if let Node::Dict(dict) = node {
+            Some(get_len(dict))
+        } else {
+            None
+        }
+    }).sum::<usize>() + dict.len()
 }

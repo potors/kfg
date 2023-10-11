@@ -113,6 +113,8 @@ pub fn parse(tokens: &[Token]) -> Result<Ast, ParserError> {
         }
     }
 
+    debug!("\x1b[1;33m*\x1b[37m Assignments: \x1b[36m{}\x1b[m", ast.assignments());
+
     Ok(ast)
 }
 

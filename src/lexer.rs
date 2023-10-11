@@ -36,7 +36,7 @@ pub fn tokenize(buffer: &[u8]) -> Vec<Token> {
         tokens.push(token);
     }
 
-    trace!("\x1b[1;33m*\x1b[37m Tokens: \x1b[36m{}\x1b[m", tokens.len());
+    debug!("\x1b[1;33m*\x1b[37m Tokens: \x1b[36m{}\x1b[m", tokens.len());
     tokens
 }
 
@@ -56,7 +56,7 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
                 while iter.next().is_some_and(|token| !matches!(token.kind, NewLine)) {}
 
                 let from = token.position;
-                trace!("\x1b[31m- \x1b[35mComment\x1b[m from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", from.line, from.character, from.line + 1, 0);
+                trace!("\x1b[31m-\x1b[m \x1b[35mComment\x1b[m from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", from.line, from.character, from.line + 1, 0);
 
                 continue;
             }
@@ -71,12 +71,11 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
 
                 let from = token.position;
                 let to = iter.next().unwrap().position;
-                trace!("\x1b[31m- \x1b[35mComment Block\x1b[m from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", from.line, from.character, to.line, to.character);
+                trace!("\x1b[31m-\x1b[m \x1b[35mComment Block\x1b[m from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", from.line, from.character, to.line, to.character);
 
                 // Remove \n after block end
                 if iter.peek().is_some_and(|&token| matches!(token.kind, NewLine)) {
-                    let token = iter.next().unwrap();
-                    trace!("\x1b[31m- \x1b[33m{:?}\x1b[m at \x1b[36m{}\x1b[m", token.kind, token.position);
+                    trace!("\x1b[31m-\x1b[m {}", iter.next().unwrap());
                 }
 
                 continue;
@@ -85,7 +84,7 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
             (Quote, _) => {
                 let mut new = Token::new(Symbol("".into()), token.position);
 
-                trace!("\x1b[32m+ \x1b[33m{:?}\x1b[m at \x1b[36m{}\x1b[m", token.kind, token.position);
+                trace!("\x1b[32m+\x1b[m {token}");
                 array.push(token.clone());
 
                 while let Some(token) = iter.next() {
@@ -93,8 +92,8 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
                         Quote => {
                             new.position += token.position;
 
-                            trace!("\x1b[32m+ \x1b[33m{:?}\x1b[m from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", new.kind, new.position.line, new.position.character, new.position.line, new.position.character + new.position.length);
-                            trace!("\x1b[32m+ \x1b[33m{:?}\x1b[m at \x1b[36m{}\x1b[m", token.kind, token.position);
+                            trace!("\x1b[32m+\x1b[m {new}");
+                            trace!("\x1b[32m+\x1b[m {token}");
                             array.push(new);
                             array.push(token.clone());
 
@@ -108,15 +107,18 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
             }
             // Ignore spaces
             (Space, _) => {
-                trace!("\x1b[31m- \x1b[33m{:?}\x1b[m at \x1b[36m{}\x1b[m", token.kind, token.position);
+                trace!("\x1b[31m-\x1b[m {token}");
                 continue;
             }
             _ => {}
         }
 
-        trace!("\x1b[32m+ \x1b[33m{:?}\x1b[m at \x1b[36m{}\x1b[m", token.kind, token.position);
+        trace!("\x1b[32m+\x1b[m {token}");
         array.push(token.clone());
     }
+
+    debug!("\x1b[1;33m*\x1b[37m Filtered: \x1b[31m{}\x1b[m", tokens.len() - array.len());
+    debug!("\x1b[1;33m*\x1b[37m Remaining: \x1b[32m{}\x1b[m", array.len());
 
     array
 }

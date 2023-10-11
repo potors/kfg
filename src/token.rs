@@ -24,6 +24,12 @@ impl Token {
     }
 }
 
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\x1b[33m{:?}\x1b[m {}", self.kind, self.position)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenKind {
     Symbol(String),
@@ -114,9 +120,9 @@ impl From<(isize, isize, isize)> for TokenPosition {
 impl std::fmt::Display for TokenPosition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.length > 1 {
-            write!(f, "{}:{}-{}", self.line, self.character, self.length)
+            write!(f, "from \x1b[36m{}:{}\x1b[m to \x1b[36m{}:{}\x1b[m", self.line, self.character, self.line, self.character + self.length)
         } else {
-            write!(f, "{}:{}", self.line, self.character)
+            write!(f, "at \x1b[36m{}:{}\x1b[m", self.line, self.character)
         }
     }
 }
