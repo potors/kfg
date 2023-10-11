@@ -40,9 +40,49 @@ pub enum Node {
     Null,
 }
 
+impl Node {
+    pub fn inline(&self) -> String {
+        match self {
+            Node::Array(value) => {
+                if value.is_empty() {
+                    "[]".to_string()
+                } else {
+                    let initial = value[0].inline();
+
+                    let arr = value
+                        .iter()
+                        .skip(1)
+                        .map(|node| format!("{}", node.inline()))
+                        .fold(initial, |acc, e| format!("{acc}, {e}"));
+
+                    format!("[{arr}]")
+                }
+            }
+            Node::Dict(value) => {
+                let value: Vec<(&String, &Node)> = value.iter().collect();
+
+                if value.is_empty() {
+                    "{}".to_string()
+                } else {
+                    let initial = format!("{}: {}", value[0].0, value[0].1.inline());
+
+                    let dict = value
+                        .iter()
+                        .skip(1)
+                        .map(|(key, value)| format!("{key}: {}", value.inline()))
+                        .fold(initial, |acc, e| format!("{acc}, {e}"));
+
+                    format!("{{{dict}}}")
+                }
+            }
+            node => node.to_string() 
+        }
+    }
+}
+
 impl std::fmt::Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let node = match self {
+        let string = match self {
             Node::String(value) => format!("\x1b[32m\"{value}\"\x1b[m"),
             Node::Integer(value) => format!("\x1b[33m{value}\x1b[m"),
             Node::Float(value) => format!("\x1b[33m{value}\x1b[m"),
@@ -82,7 +122,7 @@ impl std::fmt::Display for Node {
             Node::Null => "\x1b[31mnull\x1b[m".into(),
         };
 
-        write!(f, "{node}")
+        write!(f, "{string}")
     }
 }
 
@@ -132,14 +172,20 @@ impl TryFrom<&mut Peekable<Iter<'_, Token>>> for Node {
     fn try_from(iter: &mut Peekable<Iter<'_, Token>>) -> Result<Self, Self::Error> {
         use TokenKind::{OpenBracket, OpenCurly, Quote, Symbol};
 
-        let token = iter.peek().unwrap();
+        let token = *iter.peek().unwrap();
 
-        match token.kind {
+        let node = match token.kind {
             Symbol(_) => iter.parse_symbol(),
             Quote => iter.parse_string(),
             OpenBracket => iter.parse_array(),
             OpenCurly => iter.parse_dict(),
-            _ => Err(ParserError::UnreachableToken((*token).clone())),
+            _ => Err(ParserError::UnreachableToken(token.clone())),
+        };
+
+        if let Ok(node) = &node {
+            debug!("{}", node.inline());
         }
+
+        node
     }
 }

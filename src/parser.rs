@@ -153,13 +153,11 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
         }
         .unwrap_or(Node::try_from(token)?);
 
-        debug!("\x1b[33m*\x1b[m {node:?}");
-
         Ok(node)
     }
 
     fn parse_string(&mut self) -> Result<Node, ParserError> {
-        let mut s = String::new();
+        let mut string = String::new();
 
         // skip first quote
         self.next();
@@ -175,14 +173,10 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
                 return Err(ParserError::UnclosedString(token.clone()));
             }
 
-            s.push_str(token.kind.as_str());
+            string.push_str(token.kind.as_str());
         }
 
-        let node = Node::String(s);
-
-        debug!("\x1b[33m*\x1b[m {node:?}");
-
-        Ok(node)
+        Ok(Node::String(string))
     }
 
     fn parse_array(&mut self) -> Result<Node, ParserError> {
@@ -190,8 +184,6 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
 
         // skip first open curly
         self.next();
-
-        trace!("\x1b[36m* new array\x1b[m");
 
         while let Some(&token) = self.peek() {
             match token.kind {
@@ -215,12 +207,6 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
             }
         }
 
-        if log_enabled!(log::Level::Trace) {
-            trace!("\x1b[36m* end array\x1b[m");
-        } else {
-            debug!("\x1b[33m*\x1b[m {array:?}");
-        }
-
         Ok(Node::Array(array))
     }
 
@@ -229,8 +215,6 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
 
         // skip first open curly
         self.next();
-
-        trace!("\x1b[35m* new dict\x1b[m");
 
         while let Some(&token) = self.peek() {
             match token.kind {
@@ -280,12 +264,6 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
                     return Err(ParserError::InvalidToken(token.clone()));
                 }
             }
-        }
-
-        if log_enabled!(log::Level::Trace) {
-            trace!("\x1b[35m* end dict\x1b[m");
-        } else {
-            debug!("\x1b[33m*\x1b[m {dict:?}");
         }
 
         Ok(Node::Dict(dict))
