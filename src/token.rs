@@ -4,17 +4,23 @@ pub struct Token {
     pub position: TokenPosition,
 }
 
-#[cfg(test)]
 impl Token {
-    pub fn new(kind: TokenKind, position: (isize, isize, isize)) -> Self {
+    pub fn new(kind: TokenKind, position: impl Into<TokenPosition>) -> Self {
         Self {
             kind,
-            position: TokenPosition {
-                line: position.0,
-                character: position.1,
-                length: position.2,
-            }
+            position: position.into(),
         }
+    }
+
+    pub fn join(&mut self, rhs: &Token) -> Result<(), &'static str> {
+        if let TokenKind::Symbol(ref mut symbol) = self.kind {
+            symbol.push_str(rhs.kind.as_str());
+            self.position += rhs.position;
+        } else {
+            return Err("token is not a symbol");
+        }
+
+        Ok(())
     }
 }
 
@@ -95,8 +101,39 @@ pub struct TokenPosition {
     pub length: isize,
 }
 
-impl ToString for TokenPosition {
-    fn to_string(&self) -> String {
-        format!("{}:{}-{}", self.line, self.character, self.length)
+impl From<(isize, isize, isize)> for TokenPosition {
+    fn from(value: (isize, isize, isize)) -> Self {
+        Self {
+            line: value.0,
+            character: value.1,
+            length: value.2,
+        }
+    }
+}
+
+impl std::fmt::Display for TokenPosition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.length > 1 {
+            write!(f, "{}:{}-{}", self.line, self.character, self.length)
+        } else {
+            write!(f, "{}:{}", self.line, self.character)
+        }
+    }
+}
+
+// impl std::ops::Add for TokenPosition {
+//     type Output = Self;
+
+//     fn add(self, rhs: Self) -> Self::Output {
+//         Self {
+//             length: self.length + rhs.length,
+//             ..self
+//         }
+//     }
+// }
+
+impl std::ops::AddAssign for TokenPosition {
+    fn add_assign(&mut self, rhs: Self) {
+        self.length += rhs.length;
     }
 }

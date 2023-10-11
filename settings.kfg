@@ -1,6 +1,5 @@
-//var='escaped\nstring'
-
 // comment
+var='escaped string' // comment after decl
 /* comment block */
 /*
 boolean_variable = true

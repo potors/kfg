@@ -12,3 +12,4 @@ should do:
     - [x] tokenizer
     - [x] filter
   - [x] testing is too hard, ignore for a while
+  - [ ] fix \n as 0th character
