@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 pub(crate) mod token;
 pub use token::*;
 

@@ -153,7 +153,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
         }
         .unwrap_or(Node::try_from(token)?);
 
-        log::debug!("\x1b[33m*\x1b[m {node:?}");
+        debug!("\x1b[33m*\x1b[m {node:?}");
 
         Ok(node)
     }
@@ -180,7 +180,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
 
         let node = Node::String(s);
 
-        log::debug!("\x1b[33m*\x1b[m {node:?}");
+        debug!("\x1b[33m*\x1b[m {node:?}");
 
         Ok(node)
     }
@@ -191,7 +191,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
         // skip first open curly
         self.next();
 
-        log::trace!("\x1b[36m* new array\x1b[m");
+        trace!("\x1b[36m* new array\x1b[m");
 
         while let Some(&token) = self.peek() {
             match token.kind {
@@ -215,10 +215,10 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
             }
         }
 
-        if log::log_enabled!(log::Level::Trace) {
-            log::trace!("\x1b[36m* end array\x1b[m");
+        if log_enabled!(log::Level::Trace) {
+            trace!("\x1b[36m* end array\x1b[m");
         } else {
-            log::debug!("\x1b[33m*\x1b[m {array:?}");
+            debug!("\x1b[33m*\x1b[m {array:?}");
         }
 
         Ok(Node::Array(array))
@@ -230,7 +230,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
         // skip first open curly
         self.next();
 
-        log::trace!("\x1b[35m* new dict\x1b[m");
+        trace!("\x1b[35m* new dict\x1b[m");
 
         while let Some(&token) = self.peek() {
             match token.kind {
@@ -282,10 +282,10 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
             }
         }
 
-        if log::log_enabled!(log::Level::Trace) {
-            log::trace!("\x1b[35m* end dict\x1b[m");
+        if log_enabled!(log::Level::Trace) {
+            trace!("\x1b[35m* end dict\x1b[m");
         } else {
-            log::debug!("\x1b[33m*\x1b[m {dict:?}");
+            debug!("\x1b[33m*\x1b[m {dict:?}");
         }
 
         Ok(Node::Dict(dict))
