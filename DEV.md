@@ -7,6 +7,7 @@ before pull run and fix:
 should do:
   - [ ] impl serde
   - [ ] escaped characters inside strings
+  - [ ] refactor parser
   - [x] tests
     - [x] parser
     - [x] tokenizer

@@ -1,7 +1,4 @@
-use crate::{
-    parser::{ParseTokens, ParserError},
-    Token, TokenKind,
-};
+use crate::{parser::ParserError, Token, TokenKind};
 use std::{collections::HashMap, iter::Peekable, slice::Iter};
 
 const INDENT: fn(String) -> String = |s| s.replace('\n', "\n  ");
@@ -24,6 +21,16 @@ impl Ast {
 
         format!("{{{string}}}")
     }
+}
+
+fn get_len(dict: &HashMap<String, Node>) -> usize {
+    dict.iter().map(|(_, node)| {
+        if let Node::Dict(dict) = node {
+            get_len(dict)
+        } else {
+            0
+        }
+    }).sum::<usize>() + dict.len()
 }
 
 impl std::fmt::Display for Ast {
@@ -69,7 +76,7 @@ impl Node {
                     let arr = value
                         .iter()
                         .skip(1)
-                        .map(|node| format!("{}", node.inline()))
+                        .map(|node| node.inline())
                         .fold(initial, |acc, e| format!("{acc}, {e}"));
 
                     format!("[{arr}]")
@@ -92,7 +99,7 @@ impl Node {
                     format!("{{{dict}}}")
                 }
             }
-            node => node.to_string() 
+            node => node.to_string(),
         }
     }
 }
@@ -100,7 +107,7 @@ impl Node {
 impl std::fmt::Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let string = match self {
-            Node::String(value) => format!("\x1b[32m\"{value}\"\x1b[m"),
+            Node::String(value) => format!("\x1b[32m{value:?}\x1b[m"),
             Node::Integer(value) => format!("\x1b[33m{value}\x1b[m"),
             Node::Float(value) => format!("\x1b[33m{value}\x1b[m"),
             Node::Bool(value) => format!("\x1b[34m{value}\x1b[m"),
@@ -224,12 +231,160 @@ impl PartialEq for Node {
     }
 }
 
-fn get_len(dict: &HashMap<String, Node>) -> usize {
-    dict.iter().filter_map(|(_, node)| {
-        if let Node::Dict(dict) = node {
-            Some(get_len(dict))
-        } else {
-            None
+pub trait ParseTokens {
+    fn parse_symbol(&mut self) -> Result<Node, ParserError>;
+    fn parse_string(&mut self) -> Result<Node, ParserError>;
+    fn parse_array(&mut self) -> Result<Node, ParserError>;
+    fn parse_dict(&mut self) -> Result<Node, ParserError>;
+}
+
+impl ParseTokens for Peekable<Iter<'_, Token>> {
+    fn parse_symbol(&mut self) -> Result<Node, ParserError> {
+        let token = self.next().unwrap();
+
+        let node = {
+            if let Some(&dot) = self.peek() {
+                if let TokenKind::Dot = dot.kind {
+                    // skip dot
+                    self.next();
+
+                    if self.peek().is_none() {
+                        return Err(ParserError::MissingToken(
+                            TokenKind::Symbol("".into()),
+                            dot.clone(),
+                        ));
+                    }
+
+                    let left = token.kind.as_str();
+                    let right = self.next().unwrap().kind.as_str();
+
+                    Some(Node::try_from(format!("{left}.{right}"))?)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
         }
-    }).sum::<usize>() + dict.len()
+        .unwrap_or(Node::try_from(token)?);
+
+        Ok(node)
+    }
+
+    fn parse_string(&mut self) -> Result<Node, ParserError> {
+        let mut string = String::new();
+
+        // skip first quote
+        self.next();
+
+        while let Some(token) = self.next() {
+            match token.kind {
+                TokenKind::Quote => break,
+                TokenKind::NewLine => return Err(ParserError::BrokenString(token.clone())),
+                _ => {}
+            }
+
+            if self.peek().is_none() {
+                return Err(ParserError::UnclosedString(token.clone()));
+            }
+
+            if let TokenKind::BackSlash = token.kind {
+                string.push_str(self.next().unwrap().kind.as_str());
+            } else {
+                string.push_str(token.kind.as_str());
+            }
+        }
+
+        Ok(Node::String(string))
+    }
+
+    fn parse_array(&mut self) -> Result<Node, ParserError> {
+        let mut array = Vec::new();
+
+        // skip first open curly
+        self.next();
+
+        while let Some(&token) = self.peek() {
+            match token.kind {
+                TokenKind::CloseBracket => {
+                    self.next();
+                    break;
+                }
+                TokenKind::NewLine | TokenKind::Space | TokenKind::Tab | TokenKind::Comma => {
+                    self.next();
+                    continue;
+                }
+                TokenKind::Symbol(_)
+                | TokenKind::Quote
+                | TokenKind::OpenBracket
+                | TokenKind::OpenCurly => {
+                    array.push(Node::try_from(&mut *self)?);
+                }
+                _ => {
+                    return Err(ParserError::InvalidToken(token.clone()));
+                }
+            }
+        }
+
+        Ok(Node::Array(array))
+    }
+
+    fn parse_dict(&mut self) -> Result<Node, ParserError> {
+        let mut dict = HashMap::new();
+
+        // skip first open curly
+        self.next();
+
+        while let Some(&token) = self.peek() {
+            match token.kind {
+                TokenKind::CloseCurly => {
+                    self.next();
+                    break;
+                }
+                TokenKind::NewLine | TokenKind::Space | TokenKind::Tab | TokenKind::Comma => {
+                    self.next();
+                    continue;
+                }
+                TokenKind::Dot => {
+                    self.next();
+
+                    if self.peek().is_none() {
+                        return Err(ParserError::UnexpectedEOF(token.clone()));
+                    }
+
+                    let token = self.next().unwrap();
+
+                    if let TokenKind::Symbol(ref key) = token.kind {
+                        if self.peek().is_none() {
+                            return Err(ParserError::UnexpectedEOF(token.clone()));
+                        }
+
+                        match self.next() {
+                            Some(token) if matches!(token.kind, TokenKind::Colon) => {
+                                match self.peek() {
+                                    Some(&token) if matches!(token.kind, TokenKind::Colon) => {
+                                        return Err(ParserError::ScopeInsideDict(token.clone()));
+                                    }
+                                    None => return Err(ParserError::UnexpectedEOF(token.clone())),
+                                    _ => {}
+                                }
+
+                                let node = Node::try_from(&mut *self)?;
+                                dict.insert(key.clone(), node);
+                            }
+                            None => return Err(ParserError::UnexpectedEOF(token.clone())),
+                            _ => return Err(ParserError::MismatchedTokenType(TokenKind::Colon, token.clone())),
+                        }
+                    } else {
+                        return Err(ParserError::MismatchedTokenType(TokenKind::Symbol("".into()), token.clone()));
+                    }
+                }
+                _ => {
+                    return Err(ParserError::InvalidToken(token.clone()));
+                }
+            }
+        }
+
+        Ok(Node::Dict(dict))
+    }
 }
