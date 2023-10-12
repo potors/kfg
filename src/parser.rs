@@ -271,3 +271,47 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
         Ok(Node::Dict(dict))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse() {
+        use TokenKind::*;
+
+        let tokens: [Token; 64] = [
+            Symbol("var1".into()), Equals, Symbol("null".into()), NewLine,
+            Symbol("var2".into()), Equals, Symbol("1234".into()), NewLine,
+            Symbol("var3".into()), Equals, Symbol("01234".into()), NewLine,
+            Symbol("var4".into()), Equals, Symbol("12.34".into()), NewLine,
+            Symbol("var5".into()), Equals, Symbol("012.34".into()), NewLine,
+            Symbol("var6".into()), Equals, Quote, Symbol("str".into()), Quote, NewLine,
+            Symbol("var7".into()), Equals, Quote, Symbol(" s  t  r ".into()), Quote, NewLine,
+            // Symbol("var8".into()), Equals, Quote, Symbol("str\\tescaped".into()), Quote, NewLine,
+            Symbol("var9".into()), Equals, Symbol("true".into()), NewLine,
+            Symbol("var0".into()), Equals, Symbol("false".into()), NewLine,
+            Symbol("vara".into()), Equals, OpenBracket, Symbol("null".into()), Comma, Symbol("null".into()), CloseBracket, NewLine,
+            Symbol("varb".into()), Equals, OpenCurly, Dot, Symbol("entry".into()), Colon, Symbol("null".into()), CloseCurly, NewLine,
+            Symbol("varc".into()), Colon, Colon, Symbol("nested".into()), Equals, Symbol("null".into()), NewLine,
+        ].map(|kind| Token::new(kind, (0, 0, 0)));
+
+        let expected = HashMap::<String, _, >::from([
+            ("var1".into(), Node::Null),
+            ("var2".into(), Node::Integer(1234)),
+            ("var3".into(), Node::Integer(1234)),
+            ("var4".into(), Node::Float(12.34)),
+            ("var5".into(), Node::Float(12.34)),
+            ("var6".into(), Node::String("str".into())),
+            ("var7".into(), Node::String(" s  t  r ".into())),
+            // ("var8".into(), Node::String("str\tescaped".into())),
+            ("var9".into(), Node::Bool(true)),
+            ("var0".into(), Node::Bool(false)),
+            ("vara".into(), Node::Array(vec![Node::Null, Node::Null])),
+            ("varb".into(), Node::Dict(HashMap::from([("entry".to_string(), Node::Null)]))),
+            ("varc".into(), Node::Dict(HashMap::from([("nested".into(), Node::Null)]))),
+        ]);
+
+        assert_eq!(parse(&tokens).unwrap().0, expected);
+    }
+}

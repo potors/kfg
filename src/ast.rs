@@ -207,6 +207,23 @@ impl TryFrom<&mut Peekable<Iter<'_, Token>>> for Node {
     }
 }
 
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        use Node::*;
+        
+        match (self, other) {
+            (String(a), String(b)) => a == b,
+            (Integer(a), Integer(b)) => a == b,
+            (Float(a), Float(b)) => a == b,
+            (Bool(a), Bool(b)) => a == b,
+            (Array(a), Array(b)) => a == b,
+            (Dict(a), Dict(b)) => a == b,
+            (Null, Null) => true,
+            _ => false,
+        }
+    }
+}
+
 fn get_len(dict: &HashMap<String, Node>) -> usize {
     dict.iter().filter_map(|(_, node)| {
         if let Node::Dict(dict) = node {

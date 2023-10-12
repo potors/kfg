@@ -5,11 +5,11 @@ before pull run and fix:
   - [cargo bloat](https://github.com/RazrFalcon/cargo-bloat)
 
 should do:
-  - [ ] custom log impl
   - [ ] impl serde
   - [ ] escaped characters inside strings
-  - [ ] tests
+  - [x] tests
+    - [x] parser
     - [x] tokenizer
     - [x] filter
   - [x] testing is too hard, ignore for a while
-  - [ ] fix \n as 0th character
+  - [x] fix \n as 0th character

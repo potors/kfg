@@ -130,17 +130,6 @@ impl std::fmt::Display for TokenPosition {
     }
 }
 
-// impl std::ops::Add for TokenPosition {
-//     type Output = Self;
-
-//     fn add(self, rhs: Self) -> Self::Output {
-//         Self {
-//             length: self.length + rhs.length,
-//             ..self
-//         }
-//     }
-// }
-
 impl Default for TokenPosition {
     fn default() -> Self {
         Self {
