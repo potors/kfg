@@ -193,7 +193,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
                     self.next();
                     break;
                 }
-                TokenKind::NewLine | TokenKind::Space | TokenKind::Comma => {
+                TokenKind::NewLine | TokenKind::Space | TokenKind::Tab | TokenKind::Comma => {
                     self.next();
                     continue;
                 }
@@ -224,7 +224,7 @@ impl ParseTokens for Peekable<Iter<'_, Token>> {
                     self.next();
                     break;
                 }
-                TokenKind::NewLine | TokenKind::Space | TokenKind::Comma => {
+                TokenKind::NewLine | TokenKind::Space | TokenKind::Tab | TokenKind::Comma => {
                     self.next();
                     continue;
                 }

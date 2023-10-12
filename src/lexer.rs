@@ -105,8 +105,8 @@ pub fn filter(tokens: &[Token]) -> Vec<Token> {
 
                 continue;
             }
-            // Ignore spaces
-            (Space, _) => {
+            // Ignore whitespaces
+            (Space | Tab, _) => {
                 trace!("\x1b[31m-\x1b[m {token}");
                 continue;
             }
@@ -164,22 +164,22 @@ mod tests {
         use TokenKind::*;
 
         let tokens: [Token; 15] = [
-            Token::new(Slash, (0, 0, 0)),
-            Token::new(Slash, (0, 0, 0)),
-            Token::new(Symbol("comment".into()), (0, 0, 0)),
-            Token::new(NewLine, (0, 0, 0)),
-            Token::new(Symbol("var".into()), (0, 0, 0)),
-            Token::new(Equals, (0, 0, 0)),
-            Token::new(Symbol("null".into()), (0, 0, 0)),
-            Token::new(NewLine, (0, 0, 0)),
-            Token::new(Slash, (0, 0, 0)),
-            Token::new(Asterisk, (0, 0, 0)),
-            Token::new(Symbol("comment".into()), (0, 0, 0)),
-            Token::new(Space, (0, 0, 0)),
-            Token::new(Symbol("block".into()), (0, 0, 0)),
-            Token::new(Asterisk, (0, 0, 0)),
-            Token::new(Slash, (0, 0, 0)),
-        ];
+            Slash,
+            Slash,
+            Symbol("comment".into()),
+            NewLine,
+            Symbol("var".into()),
+            Equals,
+            Symbol("null".into()),
+            NewLine,
+            Slash,
+            Asterisk,
+            Symbol("comment".into()),
+            Space,
+            Symbol("block".into()),
+            Asterisk,
+            Slash,
+        ].map(|kind| Token::new(kind, (0, 0, 0)));
 
         let expect: &[Token] = &tokens[4..8];
 

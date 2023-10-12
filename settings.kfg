@@ -1,5 +1,5 @@
 // comment
-
+	
 var='escaped string' // comment after decl
 /* comment block */
 
