@@ -5,7 +5,7 @@ before pull run and fix:
   - [cargo bloat](https://github.com/RazrFalcon/cargo-bloat)
 
 should do:
-  - [ ] impl serde
+  - [ ] ~~impl serde~~
   - [ ] escaped characters inside strings
   - [ ] refactor parser
   - [x] tests

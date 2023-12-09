@@ -5,6 +5,8 @@ edition = "2021"
 authors = ["felpofo <felpofo@proton.me>"]
 license = "MIT"
 
-[dependencies]
+[dev-dependencies]
 env_logger = "0.10.0"
+
+[dependencies]
 log = "0.4.20"

@@ -4,7 +4,7 @@ use std::{collections::HashMap, iter::Peekable, slice::Iter};
 const INDENT: fn(String) -> String = |s| s.replace('\n', "\n  ");
 
 #[derive(Debug, Default, Clone)]
-pub struct Ast(pub HashMap<String, Node>);
+pub struct Ast(pub(crate) HashMap<String, Node>);
 
 impl Ast {
     pub fn assignments(&self) -> usize {
@@ -31,6 +31,20 @@ fn get_len(dict: &HashMap<String, Node>) -> usize {
             0
         }
     }).sum::<usize>() + dict.len()
+}
+
+impl std::ops::Deref for Ast {
+    type Target = HashMap<String, Node>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Ast {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 impl std::fmt::Display for Ast {
@@ -217,7 +231,7 @@ impl TryFrom<&mut Peekable<Iter<'_, Token>>> for Node {
 impl PartialEq for Node {
     fn eq(&self, other: &Self) -> bool {
         use Node::*;
-        
+
         match (self, other) {
             (String(a), String(b)) => a == b,
             (Integer(a), Integer(b)) => a == b,
